@@ -1,0 +1,177 @@
+-- Odelya, Matatov
+
+
+
+--question 1
+SELECT c.id, c.fname, c.lname
+FROM customer c
+WHERE c.fname LIKE '%t'
+AND c.fname NOT LIKE '%b%';
+
+
+--question 2
+SELECT c.id, c.fname, c.lname
+FROM customer c
+WHERE c.id > (
+    SELECT MAX(id)
+    FROM customer
+    WHERE state = 'CA'
+);
+
+--question 3
+SELECT c.id, c.fname, c.lname
+FROM customer c
+WHERE c.id IN (
+    SELECT cust_id
+    FROM sales_order
+)
+AND c.id NOT IN (
+    SELECT cust_id
+    FROM sales_order
+    WHERE STRFTIME('%Y', order_date) <> '1993'
+);
+
+--question 4
+SELECT c.id, c.fname, c.lname
+FROM customer c
+WHERE c.id NOT IN (
+    SELECT cust_id FROM sales_order
+);
+
+
+--question 5
+SELECT p.id, p.name, p.description
+FROM product p, sales_order_items si, sales_order so
+WHERE p.id = si.prod_id
+AND si.id = so.id
+AND si.ship_date < so.order_date;
+
+
+--question 6
+SELECT DISTINCT p.name, p.description
+FROM product p, sales_order_items si, sales_order so, customer c
+WHERE p.id = si.prod_id
+AND si.id = so.id
+AND so.cust_id = c.id
+AND c.lname LIKE 'M%'    
+ORDER BY p.name;
+
+
+--question 7
+SELECT DISTINCT c.id, c.fname, c.lname
+FROM customer c
+WHERE c.id NOT IN (
+    SELECT so.cust_id
+    FROM sales_order so, sales_order_items si, product p
+    WHERE so.id = si.id
+    AND si.prod_id = p.id
+    AND p.name LIKE '%shirt%'
+)
+AND c.id IN (SELECT cust_id FROM sales_order);
+
+
+
+--question 9
+SELECT d.dept_id, d.dept_name,
+       COUNT(e.emp_id) AS num_emp,
+       AVG(e.salary) AS avg_salary
+FROM department d
+LEFT JOIN employee e ON d.dept_id = e.dept_id
+GROUP BY d.dept_id, d.dept_name;
+
+
+
+--question 10
+SELECT e.emp_id, e.emp_fname || ' ' || e.emp_lname AS full_name,
+       COUNT(so.id) AS num_orders
+FROM employee e
+LEFT JOIN sales_order so ON so.sales_rep = e.emp_id
+GROUP BY e.emp_id;
+
+
+
+--question 12
+SELECT state, COUNT(*) AS num_customers
+FROM customer
+GROUP BY state
+ORDER BY num_customers
+LIMIT 1;
+
+
+
+--question 13
+SELECT c.id, c.fname, c.lname,
+       COUNT(so2.id) AS total_orders
+FROM customer c
+JOIN sales_order so1 ON so1.cust_id = c.id
+JOIN sales_order so2 ON so2.cust_id = c.id
+WHERE so1.sales_rep = 129
+GROUP BY c.id;
+
+
+--question 14a
+CREATE VIEW order_total AS
+SELECT so.id AS order_id,
+       SUM(si.quantity * p.unit_price) AS total_cost
+FROM sales_order so, sales_order_items si, product p
+WHERE so.id = si.id
+AND si.prod_id = p.id
+GROUP BY so.id;
+
+
+--question 14b
+SELECT SUM(total_cost)
+FROM order_total
+WHERE order_id IN (
+    SELECT id FROM sales_order WHERE cust_id = 103
+);
+
+
+--question 15a
+CREATE VIEW employee_age AS
+SELECT emp_id, emp_fname, emp_lname,
+       (DATE('now') - birth_date) AS age
+FROM employee;
+
+
+--question 15b
+SELECT e.dept_id, AVG(a.age) AS avg_age
+FROM employee_age a
+JOIN employee e ON a.emp_id = e.emp_id
+GROUP BY e.dept_id;
+
+
+-- question 16
+CREATE TABLE supplier (
+    sup_id INTEGER PRIMARY KEY,
+    supplier_name TEXT,
+    street TEXT,
+    city TEXT,
+    country TEXT,
+    phone TEXT
+);
+
+
+--question 17
+INSERT INTO supplier (sup_id, supplier_name, street, city, country, phone)
+VALUES (101, 'Sony', 'Market 5', 'New York', 'USA', '111-222');
+
+INSERT INTO supplier (sup_id, supplier_name, street, city, country, phone)
+VALUES (102, 'Samsung', 'River 7', 'Seoul', 'Korea', '222-333');
+
+INSERT INTO supplier (sup_id, supplier_name, street, city, country, phone)
+VALUES (103, 'LG', 'Hill 12', 'Busan', 'Korea', '444-555');
+
+SELECT * FROM supplier;
+
+
+
+--question 18
+SELECT 'Odelya' AS fname,
+       'Matatov' AS lname,
+       '367689076' AS id;
+
+
+
+
+
